@@ -1,0 +1,85 @@
+version: '3.5'
+services:
+  web:
+    build:
+      context: ./web-view
+      dockerfile: Dockerfile
+      target: development
+    ports:
+      - 4500:4500
+    networks:
+      - bridge-network
+    command: sh -c "test -e .env || cp .env.example .env && npm run start"
+
+  orders:
+    build:
+      context: ./api/order
+      dockerfile: Dockerfile
+      target: development
+    command: sh -c "test -e .env || cp ./api/order/.env.example ./api/order/.env && npm run start:dev order"
+    ports:
+      - "3000:3000"
+    restart: always
+    networks:
+      - bridge-network
+    depends_on:
+      - order-db
+      - payment
+      - redis
+
+  payment:
+    build:
+      context: ./api/payment
+      dockerfile: Dockerfile
+      target: development
+    command: sh -c "test -e .env || cp ./api/payment/.env.example ./api/payment/.env && npm run start:dev payment"
+    ports:
+      - "3001:3001"
+    restart: always
+    networks:
+      - bridge-network
+    depends_on:
+      - payment-db
+      - redis
+
+  order-db:
+    image: mongo
+    volumes:
+      - ./workspace:/workspace
+      - type: volume
+        source: order-db-volume
+        target: /data/db
+    networks:
+      - bridge-network
+
+  payment-db:
+    image: mongo
+    command: mongod --port 27019
+    volumes:
+      - ./workspace:/workspace
+      - type: volume
+        source: payment-db-volume
+        target: /data/db
+    networks:
+      - bridge-network
+
+  redis:
+    container_name: app_redis
+    build:
+       context: ./redis
+       dockerfile: Dockerfile
+    ports:
+       - "6379:6379"
+    networks:
+       - bridge-network
+
+networks:
+  bridge-network:
+    driver: bridge
+
+volumes:
+  order-db-volume:
+    driver: local
+
+  payment-db-volume:
+    driver: local
