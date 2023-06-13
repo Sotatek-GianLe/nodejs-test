@@ -1,4 +1,4 @@
-version: '3.5'
+version: "3.5"
 services:
   web:
     build:
@@ -6,19 +6,19 @@ services:
       dockerfile: Dockerfile
       target: development
     ports:
-      - 4500:4500
+      - "127.0.0.1:4500:4500"
     networks:
       - bridge-network
-    command: sh -c "test -e .env || cp .env.example .env && npm run start"
+    command: sh -c "npm run start"
 
   orders:
     build:
       context: ./api/order
       dockerfile: Dockerfile
       target: development
-    command: sh -c "test -e .env || cp ./api/order/.env.example ./api/order/.env && npm run start:dev order"
+    command: sh -c "npm run start:dev order"
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
     restart: always
     networks:
       - bridge-network
@@ -32,9 +32,9 @@ services:
       context: ./api/payment
       dockerfile: Dockerfile
       target: development
-    command: sh -c "test -e .env || cp ./api/payment/.env.example ./api/payment/.env && npm run start:dev payment"
+    command: sh -c "npm run start:dev payment"
     ports:
-      - "3001:3001"
+      - "127.0.0.1:3001:3001"
     restart: always
     networks:
       - bridge-network
@@ -42,44 +42,50 @@ services:
       - payment-db
       - redis
 
-  order-db:
-    image: mongo
+  order_db:
+    image: mysql:5.7.22
+    container_name: order_db
+    ports:
+      - "127.0.0.1:4306:3306"
     volumes:
-      - ./workspace:/workspace
-      - type: volume
-        source: order-db-volume
-        target: /data/db
+      - ./mysql/order:/var/lib/mysql
+    environment:
+      MYSQL_DATABASE: order
+      MYSQL_USER: root
+      MYSQL_PASSWORD: root
+      MYSQL_ROOT_PASSWORD: root
+      TZ: "Asia/Tokyo"
+    command: mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     networks:
       - bridge-network
 
   payment-db:
-    image: mongo
-    command: mongod --port 27019
+    image: mysql:5.7.22
+    container_name: payment_db
+    ports:
+      - "127.0.0.1:4307:3306"
     volumes:
-      - ./workspace:/workspace
-      - type: volume
-        source: payment-db-volume
-        target: /data/db
+      - ./mysql/payment:/var/lib/mysql
+    environment:
+      MYSQL_DATABASE: payment
+      MYSQL_USER: root
+      MYSQL_PASSWORD: root
+      MYSQL_ROOT_PASSWORD: root
+      TZ: "Asia/Tokyo"
+    command: mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     networks:
       - bridge-network
 
   redis:
     container_name: app_redis
     build:
-       context: ./redis
-       dockerfile: Dockerfile
+      context: ./redis
+      dockerfile: Dockerfile
     ports:
-       - "6379:6379"
+      - "127.0.0.1:6379:6379"
     networks:
-       - bridge-network
+      - bridge-network
 
 networks:
   bridge-network:
     driver: bridge
-
-volumes:
-  order-db-volume:
-    driver: local
-
-  payment-db-volume:
-    driver: local
