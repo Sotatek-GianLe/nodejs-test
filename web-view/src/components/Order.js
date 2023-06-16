@@ -142,16 +142,18 @@ const Order = () => {
                   <td>
                     {data.status === 0 && (
                       <>
-                        <button
+                        <Button
+                          variant="primary"
                           onClick={(event) => handlePayment(event, data.id)}
                         >
                           Payment
-                        </button>
-                        <button
+                        </Button>
+                        <Button
+                          variant="danger"
                           onClick={(event) => handleOrderCancel(event, data.id)}
                         >
                           Cancel
-                        </button>
+                        </Button>
                       </>
                     )}
                   </td>
