@@ -1,14 +1,21 @@
 /* eslint-disable prettier/prettier */
-import { Injectable } from '@nestjs/common';
-import { EventEmitter2 } from '@nestjs/event-emitter';
+import { WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
+import { Server, Socket } from 'socket.io';
+import { ORDER_UPDATE_STATUS } from 'src/constants/events';
+import { Order } from 'src/order/order.entity/order.entity';
 
-@Injectable()
-export class EventService extends EventEmitter2 {
-  onMyEvent(event: string, callback: (data: any) => void): void {
-    this.on(event, callback);
+@WebSocketGateway({
+  cors: {
+    origin: '*',
+  },
+})
+export class EventService {
+  @WebSocketServer()
+  server: Server;
+  handleConnection(client: Socket) {
+    client.emit('connection', 'Success connect to server');
   }
-
-  emitMyEvent(event: string, data: any): void {
-    this.emit(event, data);
+  updateStatus(payload: Order) {
+    this.server.emit(ORDER_UPDATE_STATUS, payload);
   }
 }

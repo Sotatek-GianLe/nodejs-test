@@ -13,16 +13,17 @@ import { OrderService } from './order.service';
 import { Order } from './order.entity/order.entity';
 import { OrderInterceptors } from 'src/interceptors/order.intersceptor';
 import { AuthGuard } from '@nestjs/passport';
+import { GetUser } from 'src/decorator/auth.decorator';
 
 @Controller('orders')
+@UseGuards(AuthGuard('jwt'))
 @UseInterceptors(OrderInterceptors)
 export class OrderController {
   constructor(private readonly orderService: OrderService) {}
 
   @Get()
-  @UseGuards(AuthGuard('jwt'))
-  findAll(): Promise<Order[]> {
-    return this.orderService.findAll();
+  findAll(@GetUser() user): Promise<Order[]> {
+    return this.orderService.findAll(user);
   }
 
   @Get(':id')
@@ -31,8 +32,8 @@ export class OrderController {
   }
 
   @Post()
-  create(@Body() order: Order) {
-    return this.orderService.create(order);
+  create(@Body() order: Order, @GetUser() user) {
+    return this.orderService.create(order, user);
   }
 
   @Put()
@@ -42,7 +43,7 @@ export class OrderController {
 
   @Put('/cancel')
   cancel(@Body() order: Order) {
-    return this.orderService.updateStatusById(order);
+    return this.orderService.cancelOrder(order);
   }
 
   @Delete(':id')
@@ -51,7 +52,7 @@ export class OrderController {
   }
 
   @Post('/payOrder')
-  paymentOrder(@Body() orderId: number) {
-    return this.orderService.paymentOrder(orderId);
+  paymentOrder(@Body() id: number) {
+    return this.orderService.paymentOrder(id);
   }
 }

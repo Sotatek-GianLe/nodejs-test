@@ -7,6 +7,7 @@ import { Order } from './order.entity/order.entity';
 import { EventService } from 'src/events/event.service';
 import { EventModule } from 'src/events/event.module';
 import { ClientsModule, Transport } from '@nestjs/microservices';
+import { ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
@@ -23,7 +24,7 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
     ]),
     EventModule,
   ],
-  providers: [OrderService, EventService],
+  providers: [OrderService, EventService, ConfigService],
   controllers: [OrderController],
 })
 export class OrderModule {}

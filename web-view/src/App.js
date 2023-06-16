@@ -1,6 +1,13 @@
 import React, { useEffect, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Routes, Route, Link, useLocation } from "react-router-dom";
+import {
+  Routes,
+  Route,
+  Link,
+  useLocation,
+  Navigate,
+  Outlet,
+} from "react-router-dom";
 
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./App.css";
@@ -8,26 +15,22 @@ import "./App.css";
 import Login from "./components/Login";
 import Register from "./components/Register";
 import Home from "./components/Home";
-// import Profile from "./components/Profile";
-// import BoardUser from "./components/BoardUser";
-// import BoardModerator from "./components/BoardModerator";
-// import BoardAdmin from "./components/BoardAdmin";
+import Order from "./components/Order";
+import Admin from "./components/Admin";
 
 import { logout } from "./actions/auth";
 import { clearMessage } from "./actions/message";
 
 const App = () => {
-  // const [showModeratorBoard, setShowModeratorBoard] = useState(false);
-  // const [showAdminBoard, setShowAdminBoard] = useState(false);
-
   const { user: currentUser } = useSelector((state) => state.auth);
+  const { role: currentRole } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
 
   let location = useLocation();
 
   useEffect(() => {
     if (["/login", "/register"].includes(location.pathname)) {
-      dispatch(clearMessage()); // clear message when changing location
+      dispatch(clearMessage());
     }
   }, [dispatch, location]);
 
@@ -35,15 +38,12 @@ const App = () => {
     dispatch(logout());
   }, [dispatch]);
 
-  // useEffect(() => {
-  //   if (currentUser) {
-  //     setShowModeratorBoard(currentUser.roles.includes("ROLE_MODERATOR"));
-  //     setShowAdminBoard(currentUser.roles.includes("ROLE_ADMIN"));
-  //   } else {
-  //     setShowModeratorBoard(false);
-  //     setShowAdminBoard(false);
-  //   }
-  // }, [currentUser]);
+  const ProtectedRoute = ({ isAllowed, redirectPath = "/home" }) => {
+    if (!isAllowed) {
+      return <Navigate to={redirectPath} replace />;
+    }
+    return <Outlet />;
+  };
 
   return (
     <div>
@@ -57,6 +57,24 @@ const App = () => {
               Home
             </Link>
           </li>
+          {currentUser && currentRole === 2 && (
+            <div className="navbar-nav ml-auto">
+              <li className="nav-item">
+                <Link to={"/admin"} className="nav-link">
+                  Manager Orders
+                </Link>
+              </li>
+            </div>
+          )}
+          {currentUser && currentRole === 1 && (
+            <div className="navbar-nav ml-auto">
+              <li className="nav-item">
+                <Link to={"/order"} className="nav-link">
+                  Order
+                </Link>
+              </li>
+            </div>
+          )}
         </div>
 
         {currentUser ? (
@@ -88,6 +106,20 @@ const App = () => {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/home" element={<Home />} />
+          <Route
+            element={
+              <ProtectedRoute isAllowed={!!currentRole && currentRole === 2} />
+            }
+          >
+            <Route path="/admin" element={<Admin />} />
+          </Route>
+          <Route
+            element={
+              <ProtectedRoute isAllowed={!!currentRole && currentRole === 1} />
+            }
+          >
+            <Route path="/order" element={<Order />} />
+          </Route>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
         </Routes>

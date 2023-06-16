@@ -3,12 +3,8 @@ import axios from "axios";
 
 const API_URL = "http://localhost:3000/auth/";
 
-const register = (username, email, password) => {
-  return axios.post(API_URL + "signup", {
-    username,
-    email,
-    password,
-  });
+const register = (data) => {
+  return axios.post(API_URL + "signup", data);
 };
 
 const login = (username, password) => {
@@ -23,6 +19,7 @@ const login = (username, password) => {
           "token",
           JSON.stringify(response.data.access_token)
         );
+        localStorage.setItem("role", JSON.stringify(response.data.role));
       }
 
       return response.data;
@@ -31,6 +28,7 @@ const login = (username, password) => {
 
 const logout = () => {
   localStorage.removeItem("token");
+  localStorage.removeItem("role");
 };
 
 export default {

@@ -1,10 +1,11 @@
 import React, { useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
-
+import { useNavigate } from "react-router-dom";
 import Form from "react-validation/build/form";
 import Input from "react-validation/build/input";
+import Select from "react-validation/build/select";
 import CheckButton from "react-validation/build/button";
-import { isEmail } from "validator";
+import { isEmail, isMobilePhone } from "validator";
 
 import { register } from "../actions/auth";
 
@@ -38,6 +39,46 @@ const vusername = (value) => {
   }
 };
 
+const vfirstname = (value) => {
+  if (value.length < 3 || value.length > 20) {
+    return (
+      <div className="alert alert-danger" role="alert">
+        The firstname must be between 3 and 20 characters.
+      </div>
+    );
+  }
+};
+
+const vlastname = (value) => {
+  if (value.length < 2 || value.length > 20) {
+    return (
+      <div className="alert alert-danger" role="alert">
+        The lastname must be between 2 and 20 characters.
+      </div>
+    );
+  }
+};
+
+const vphone = (value) => {
+  if (!isMobilePhone(value)) {
+    return (
+      <div className="alert alert-danger" role="alert">
+        The phone invalid!.
+      </div>
+    );
+  }
+};
+
+const vbanknumber = (value) => {
+  if (value.length < 10) {
+    return (
+      <div className="alert alert-danger" role="alert">
+        The lastname must be less than 10 characters.
+      </div>
+    );
+  }
+};
+
 const vpassword = (value) => {
   if (value.length < 6 || value.length > 40) {
     return (
@@ -51,8 +92,13 @@ const vpassword = (value) => {
 const Register = () => {
   const form = useRef();
   const checkBtn = useRef();
-
+  let navigate = useNavigate();
   const [username, setUsername] = useState("");
+  const [firstname, setFirstname] = useState("");
+  const [lastname, setLastname] = useState("");
+  const [phone, setPhone] = useState("");
+  const [token_payment, setBankNumber] = useState("");
+  const [role, setRole] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [successful, setSuccessful] = useState(false);
@@ -63,6 +109,30 @@ const Register = () => {
   const onChangeUsername = (e) => {
     const username = e.target.value;
     setUsername(username);
+  };
+
+  const onChangeFirstname = (e) => {
+    const firstname = e.target.value;
+    setFirstname(firstname);
+  };
+
+  const onChangeLastname = (e) => {
+    const lastname = e.target.value;
+    setLastname(lastname);
+  };
+  const onChangePhone = (e) => {
+    const phone = e.target.value;
+    setPhone(phone);
+  };
+
+  const onChangeBankNumber = (e) => {
+    const token_payment = e.target.value;
+    setBankNumber(token_payment);
+  };
+
+  const onChangeRole = (e) => {
+    const role = e.target.value;
+    setRole(role);
   };
 
   const onChangeEmail = (e) => {
@@ -83,9 +153,22 @@ const Register = () => {
     form.current.validateAll();
 
     if (checkBtn.current.context._errors.length === 0) {
-      dispatch(register(username, email, password))
+      const dataRegister = {
+        username: username,
+        email: email,
+        first_name: firstname,
+        last_name: lastname,
+        phone: phone,
+        password: password,
+        token_payment: token_payment,
+        role: role,
+        is_active: 1,
+      };
+      dispatch(register(dataRegister))
         .then(() => {
           setSuccessful(true);
+          navigate("/login");
+          window.location.reload();
         })
         .catch(() => {
           setSuccessful(false);
@@ -115,6 +198,65 @@ const Register = () => {
                   onChange={onChangeUsername}
                   validations={[required, vusername]}
                 />
+              </div>
+              <div className="form-group">
+                <label htmlFor="firstname">First Name</label>
+                <Input
+                  type="text"
+                  className="form-control"
+                  name="firstname"
+                  value={firstname}
+                  onChange={onChangeFirstname}
+                  validations={[required, vfirstname]}
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="lastname">Last Name</label>
+                <Input
+                  type="text"
+                  className="form-control"
+                  name="lastname"
+                  value={lastname}
+                  onChange={onChangeLastname}
+                  validations={[required, vlastname]}
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="phone">Phone</label>
+                <Input
+                  type="tel"
+                  className="form-control"
+                  name="phone"
+                  value={phone}
+                  onChange={onChangePhone}
+                  validations={[required, vphone]}
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="token_payment">Bank Number</label>
+                <Input
+                  type="text"
+                  className="form-control"
+                  name="token_payment"
+                  value={token_payment}
+                  onChange={onChangeBankNumber}
+                  validations={[required, vbanknumber]}
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="role">Role</label>
+                <Select
+                  className="form-control"
+                  name="role"
+                  value={role}
+                  onChange={onChangeRole}
+                  validations={[required]}
+                >
+                  <option value="">Choose Role</option>
+                  <option value="1">Client</option>
+                  <option value="2">Admin</option>
+                </Select>
               </div>
 
               <div className="form-group">
